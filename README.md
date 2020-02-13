@@ -106,7 +106,7 @@ sudo shutdown -r now
 ```
    - Logged back in, and I now see this message:
 ```
-Alains-MBP:udacity-linux-server-configuration boisalai$ ssh -i ~/.ssh/lightsail_key.rsa -p 2200 ubuntu@100.26.251.188
+Alains-MBP:udacity-linux-server-configuration dc355h$ ssh -i ~/.ssh/lightsail_key.rsa -p 2200 ubuntu@100.26.251.188
 Welcome to Ubuntu 16.04.3 LTS (GNU/Linux 4.4.0-1039-aws x86_64)
 
  * Documentation:  https://help.ubuntu.com
@@ -121,3 +121,205 @@ Welcome to Ubuntu 16.04.3 LTS (GNU/Linux 4.4.0-1039-aws x86_64)
 ```
 
 # Step 6: Create `grader` with the proper permissions
+1. While ssh-ed in as `ubuntu`, add a new user `grader`: `sudo adduser grader`.
+2. Enter a password (twice) and fill out information for this new user.
+3. Edit the sudoers file: `sudo visudo`.
+   - Search for the line that looks like this:
+```
+root    ALL=(ALL:ALL) ALL
+```
+   - Below this line, add a new line to give sudo privileges to grader user.
+```
+root    ALL=(ALL:ALL) ALL
+grader  ALL=(ALL:ALL) ALL
+```
+   - Save and exit.
+4. Verify that grader has sudo permissions.
+   - Run `su - grader` and enter the password.
+   - Run `sudo -l` and enter the password again. 
+   - The output should look like this:
+```
+Matching Defaults entries for grader on ip-172-26-13-170.us-east-2.compute.internal:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User grader may run the following commands on ip-172-26-13-170.us-east-2.compute.internal:
+    (ALL : ALL) ALL
+```
+5. On a separate terminal connected to the local machine:
+   - Run `ssh-keygen`.
+   - Enter the file location in which to save the key (I gave it the name `grader_key`) in the local `~/.ssh` directory.
+   - Enter in a passphrase twice. Two files will be generated (`~/.ssh/grader_key` and `~/.ssh/grader_key.pub`).
+   - Run `cat ~/.ssh/grader_key.pub` and copy the contents of the file.
+   - Log back into to the grader's virtual machine (`ssh -i ~/.ssh/lightsail_key.rsa -p 2200 ubuntu@100.26.251.188`).
+6. On the grader's virtual machine:
+   - Create a new directory called `~/.ssh`: `mkdir ~/.ssh`.
+   - Run `sudo vim ~/.ssh/authorized_keys` and paste the content into this file, save and exit.
+   - Give the permissions: `chmod 700 .ssh` and `chmod 644 .ssh/authorized_keys`.
+   - Edit the `/etc/ssh/sshd_config` file so that:
+     -`PermitRootLogin prohibit-password` is set to `PermitRootLogin yes`. 
+     -`PasswordAuthentication no` is set to `PasswordAuthentication yes`.
+   - Restart SSH: `sudo service ssh restart`
+7. On the local machine, run: `ssh -i ~/.ssh/grader_key -p 2200 grader@100.26.251.188`.
+
+## Step 7: Installing Apache and PostgreSQL
+1. While logged in as `grader`, configure the time zone: `sudo dpkg-reconfigure tzdata`.
+2. Install Apache: `sudo apt-get install apache2`.
+3. Enter public IP of the Amazon Lightsail instance into browser (`100.26.251.188`). If Apache is working, you should be able to see the Apache2 Ubuntu Default Page.
+4. My project is built with Python3 so I needed to install the Python3 mod_wsgi package: `sudo apt-get install libapache2-mod-wsgi-py3`.
+   - Enable mod_wsgi using: `sudo a2enmod wsgi`.
+5. Install PostgreSQL: `sudo apt-get install postgresql`.
+6. PostgreSQL should not allow remote connections so if you `sudo cat /etc/postgresql/9.5/main/pg_hba.conf`, you should see:
+```
+local   all             postgres                                peer
+local   all             all                                     peer
+host    all             all             127.0.0.1/32            md5
+host    all             all             ::1/128                 md5
+```
+7. Switch to the `postgres` user: `sudo su - postgres`.
+8. Open PostgreSQL interactive terminal: `psql`.
+9. Create the `catalog` user with a password and give them the ability to create databases:
+```
+postgres=# CREATE ROLE catalog WITH LOGIN PASSWORD 'catalog';
+postgres=# ALTER ROLE catalog CREATEDB;
+```
+10. List the existing roles: `\du`. The output should look like this:
+```
+                                   List of roles
+ Role name |                         Attributes                         | Member of 
+-----------+------------------------------------------------------------+-----------
+ catalog   | Create DB                                                  | {}
+ postgres  | Superuser, Create role, Create DB, Replication, Bypass RLS | {}
+```
+   - Exit psql: `\q`.
+11. Switch back to the `grader` user: `exit`.
+12. Create a new Linux user called `catalog`: `sudo adduser catalog`. Enter password and fill out information.
+13. Give to `catalog` user the permission to sudo. Run: `sudo visudo`.
+    - Search for the lines that looks like this:
+```
+root    ALL=(ALL:ALL) ALL
+grader  ALL=(ALL:ALL) ALL
+```
+    - Below this line, add a new line to give sudo privileges to `catalog` user.
+```
+catalog  ALL=(ALL:ALL) ALL
+```
+    - Save and exit using CTRL+X and confirm with Y.
+14. Verify that `catalog` has sudo permissions. Run `su - catalog`, enter the password, run `sudo -l` and enter the password again. The output should look like this:
+```
+Matching Defaults entries for catalog on ip-172-26-13-170.us-east-2.compute.internal:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User catalog may run the following commands on ip-172-26-13-170.us-east-2.compute.internal:
+    (ALL : ALL) ALL
+```
+15. While logged in as `catalog`, create a database: `createdb catalog`.
+16. Run `psql` and then run `\l` to see that the new database has been created. The output should look like this:
+```
+                                  List of databases
+   Name    |  Owner   | Encoding |   Collate   |    Ctype    |   Access privileges   
+-----------+----------+----------+-------------+-------------+-----------------------
+ catalog   | catalog  | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+ postgres  | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+ template0 | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+           |          |          |             |             | postgres=CTc/postgres
+ template1 | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres          +
+           |          |          |             |             | postgres=CTc/postgres
+(4 rows)
+```
+17. Exit psql: `\q`.
+18. Switch back to the `grader` user: `exit`.
+
+## Step 8: Deploying the Catalog Project
+1. While logged in as `grader`, install `git`: `sudo apt-get install git`.
+2. Create the project directory: `mkdir /var/www/catalog/`.
+3. Change to that directory and clone the catalog project: `sudo git clone https://github.com/DonovanCheung/fullstack-nanodegree-vm.git catalog`.
+4. From the `/var/www` directory, change the ownership of the `catalog` directory to `grader` using: `sudo chown -R grader:grader catalog/`.
+5. Change to the `/var/www/catalog/catalog` directory.
+6. Rename the `project.py` file to `__init__.py` using: `mv project.py __init__.py`.
+   - In `__init__.py`, replace line 27:
+```
+# app.run(host="0.0.0.0", port=8000, debug=True)
+app.run()
+```
+   - In `database_setup.py`, replace line 9:
+```
+# engine = create_engine("sqlite:///catalog.db")
+engine = create_engine('postgresql://catalog:PASSWORD@localhost/catalog')
+```
+where `PASSWORD` is the password for the `catalog` user
+7. Go to the Google [Cloud Platform](https://console.cloud.google.com/).
+8. Click `APIs & services` on left menu.
+9. Click `Credentials`.
+10. Create an OAuth Client ID (under the Credentials tab), and add http://100.26.251.188 and http://ec2-100-26-251-188.us-east-2.compute.amazonaws.com as authorized JavaScript origins.
+Add http://ec2-100-26-251-188.us-east-2.compute.amazonaws.com/oauth2callback as authorized redirect URI.
+11. Download the corresponding JSON file onto the local machine, open it and copy the contents.
+12. Open `/var/www/catalog/catalog/client_secret.json` and paste the previous contents into this file.
+
+## Step 9: Set up the virtual environment and host
+1. While logged in as `grader`, install `pip`: `sudo apt-get install python3-pip`.
+2. Install the virtual environment: `sudo apt-get install python-virtualenv`
+3. Change to the `/var/www/catalog/catalog/` directory.
+4. Create the virtual environment: `sudo virtualenv -p python3 venv3`.
+5. Change the ownership to `grader` with: `sudo chown -R grader:grader venv3/`.
+6. Activate the new environment: `. venv3/bin/activate`.
+7. Install the following dependencies:
+```
+pip install httplib2
+pip install requests
+pip install --upgrade oauth2client
+pip install sqlalchemy
+pip install flask
+sudo apt-get install libpq-dev
+pip install psycopg2
+```
+8. Run `python3 __init__.py` and you should see:
+```
+* Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+```
+9. Deactivate the virtual environment: `deactivate`.
+10. To use Python3, add the following line in the `/etc/apache2/mods-enabled/wsgi.conf` file below the `#WSGIPythonPath directory|directory-1:directory-2:...` line:
+```
+WSGIPythonPath /var/www/catalog/catalog/venv3/lib/python3.5/site-packages
+```
+11. Create `/etc/apache2/sites-available/catalog.conf` and add the following lines to configure the virtual host:
+```
+<VirtualHost *:80>
+    ServerName 100.26.251.188
+  ServerAlias ec2-100-26-251-188.us-west-2.compute.amazonaws.com
+    WSGIScriptAlias / /var/www/catalog/catalog.wsgi
+    <Directory /var/www/catalog/catalog/>
+    	Order allow,deny
+  	  Allow from all
+    </Directory>
+    Alias /static /var/www/catalog/catalog/static
+    <Directory /var/www/catalog/catalog/static/>
+  	  Order allow,deny
+  	  Allow from all
+    </Directory>
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    LogLevel warn
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+```
+12. Enable virtual host: `sudo a2ensite catalog`.
+13. Reload Apache: `sudo service apache2 reload`.
+14. Create `/var/www/catalog/catalog.wsgi` file add the following lines:
+```
+activate_this = '/var/www/catalog/catalog/venv3/bin/activate_this.py'
+with open(activate_this) as file_:
+    exec(file_.read(), dict(__file__=activate_this))
+
+#!/usr/bin/python
+import sys
+import logging
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0, "/var/www/catalog/catalog/")
+sys.path.insert(1, "/var/www/catalog/")
+
+from catalog import app as application
+application.secret_key = "..."
+```
+15. Restart Apache: `sudo service apache2 restart`.
+
+## Step 10: 
