@@ -337,4 +337,4 @@ sys.path.insert(0, "/var/www/catalog/catalog/venv3/lib/python3.5/site-packages")
 2. Reload Apache: `sudo service apache2 reload`.
 3. Change the ownership of the project directories: `sudo chown -R www-data:www-data catalog/`.
 4. Restart Apache again: `sudo service apache2 restart`.
-5. Open your browser to http://100.26.251.188 or http://ec2-100-26-251-188.us-east-2.compute.amazonaws.com.
+5. Open your browser to http://100.26.251.188 or http://ec2-100-26-251-188.compute-1.amazonaws.com/.
