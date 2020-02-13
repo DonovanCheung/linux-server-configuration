@@ -322,4 +322,19 @@ application.secret_key = "..."
 ```
 15. Restart Apache: `sudo service apache2 restart`.
 
-## Step 10: 
+## Step 10: Set up the database
+1. Edit `/var/www/catalog/catalog/database_setup.py`.
+2. Add this at the beginning of the file after `import sys`:
+```
+sys.path.insert(0, "/var/www/catalog/catalog/venv3/lib/python3.5/site-packages") 
+```
+3. From `/var/www/catalog/catalog/` directory, activate the virtual environment: `. venv3/bin/activate`.
+4. Run: `python database_setup.py' and then 'python lotsoftech.py`.
+5. Deactivate the virtual environment: `deactivate`.
+
+## Step 11: Launch the web application
+1. Disable the default Apache site: `sudo a2dissite 000-default.conf`. 
+2. Reload Apache: `sudo service apache2 reload`.
+3. Change the ownership of the project directories: `sudo chown -R www-data:www-data catalog/`.
+4. Restart Apache again: `sudo service apache2 restart`.
+5. Open your browser to http://100.26.251.188 or http://ec2-100-26-251-188.us-east-2.compute.amazonaws.com.
