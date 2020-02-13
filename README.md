@@ -8,7 +8,7 @@ This page explains how to set up a Linux Ubuntu distribution on a virtual machin
 - The web application is my Electronics Catalog project created earlier for Part 4 of this Nanodegree program.
 - The database server is PostgreSQL.
 
-You can visit http://http://100.26.251.188/ or http://ec2-100-26-251-188.compute-1.amazonaws.com/ anytime to view the fully deployed website.
+You can visit http://100.26.251.188/ or http://ec2-100-26-251-188.compute-1.amazonaws.com/ anytime to view the fully deployed website.
 
 ## Step 1: Create a Ubuntu server with Amazon Lightsail
 1. Create an Amazon Web Services account and log into [Amazon Lightsail](https://lightsail.aws.amazon.com/).
