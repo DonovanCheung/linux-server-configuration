@@ -97,8 +97,7 @@ APT::Periodic::AutocleanInterval "7";
 APT::Periodic::Unattended-Upgrade "1";
 ```
 9. Enable it: `sudo dpkg-reconfigure --priority=low unattended-upgrades`.
-10. Restart Apache: `sudo service apache2 restart`.
-11. Reupdate the installed packages:
+10. Reupdate the installed packages:
 ```
 sudo apt-get update
 sudo apt-get dist-upgrade
@@ -150,7 +149,7 @@ User grader may run the following commands on ip-172-26-13-170.us-east-2.compute
    - Enter the file location in which to save the key (I gave it the name `grader_key`) in the local `~/.ssh` directory.
    - Enter in a passphrase twice. Two files will be generated (`~/.ssh/grader_key` and `~/.ssh/grader_key.pub`).
    - Run `cat ~/.ssh/grader_key.pub` and copy the contents of the file.
-   - Log back into to the grader's virtual machine (`ssh -i ~/.ssh/lightsail_key.rsa -p 2200 ubuntu@100.26.251.188`).
+   - Log back into to the grader's virtual machine.
 6. On the grader's virtual machine:
    - Create a new directory called `~/.ssh`: `mkdir ~/.ssh`.
    - Run `sudo vim ~/.ssh/authorized_keys` and paste the content into this file, save and exit.
