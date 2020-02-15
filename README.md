@@ -8,7 +8,7 @@ This page explains how to set up a Linux Ubuntu distribution on a virtual machin
 - The web application is my Electronics Catalog project created earlier for Part 4 of this Nanodegree program.
 - The database server is PostgreSQL.
 
-You can visit http://100.26.251.188/ or http://ec2-100-26-251-188.compute-1.amazonaws.com/ anytime to view the fully deployed website.
+You can visit http://3.218.247.29 or http://ec2-3-218-247-29.compute-1.amazonaws.com/ anytime to view the fully deployed website.
 
 ## Step 1: Create a Ubuntu server with Amazon Lightsail
 1. Create an Amazon Web Services account and log into [Amazon Lightsail](https://lightsail.aws.amazon.com/).
@@ -23,7 +23,7 @@ You can visit http://100.26.251.188/ or http://ec2-100-26-251-188.compute-1.amaz
 1. Go into the `Account page` on Amazon Lightsail, click on the `SSH keys` tab and download the Default Key.
 2. Rename the file to `lightsail_key.rsa` and move it into the local `~/.ssh` directory.
 3. Open the terminal and run: `chmod 600 ~/.ssh/lightsail_key.rsa`.
-4. Now you can connect to the instance via the terminal with the command: `ssh -i ~/.ssh/lightsail_key.rsa ubuntu@100.26.251.188`, where `100.26.251.188` is the public IP address of the instance.
+4. Now you can connect to the instance via the terminal with the command: `ssh -i ~/.ssh/lightsail_key.rsa ubuntu@3.218.247.29`, where `3.218.247.29` is the public IP address of the instance.
 
 ## Step 3: Configure the server
 1. Update and upgrade the installed packages with the command:
@@ -75,7 +75,7 @@ To                         Action      From
    - Custom (UDP) Port 123
    - Custom (TCP) Port 2200
    - These three should be the only allowed connection in the `Firewall` configuration.
-7. In your local terminal, run: `ssh -i ~/.ssh/lightsail_key.rsa -p 2200 ubuntu@100.26.251.188`, where `100.26.251.188` is the public IP address of the instance.
+7. In your local terminal, run: `ssh -i ~/.ssh/lightsail_key.rsa -p 2200 ubuntu@3.218.247.29`, where `3.218.247.29` is the public IP address of the instance.
 
 ## Step 5: Add more security measures
 1. Install Fail2Ban: `sudo apt-get install fail2ban`.
@@ -105,7 +105,7 @@ sudo shutdown -r now
 ```
    - Logged back in, and I now see this message:
 ```
-Alains-MBP:udacity-linux-server-configuration dc355h$ ssh -i ~/.ssh/lightsail_key.rsa -p 2200 ubuntu@100.26.251.188
+Alains-MBP:udacity-linux-server-configuration dc355h$ ssh -i ~/.ssh/lightsail_key.rsa -p 2200 ubuntu@3.218.247.29
 Welcome to Ubuntu 16.04.3 LTS (GNU/Linux 4.4.0-1039-aws x86_64)
 
  * Documentation:  https://help.ubuntu.com
@@ -158,12 +158,12 @@ User grader may run the following commands on ip-172-26-13-170.us-east-2.compute
      -`PermitRootLogin prohibit-password` is set to `PermitRootLogin yes`. 
      -`PasswordAuthentication no` is set to `PasswordAuthentication yes`.
    - Restart SSH: `sudo service ssh restart`
-7. On the local machine, run: `ssh -i ~/.ssh/grader_key -p 2200 grader@100.26.251.188`.
+7. On the local machine, run: `ssh -i ~/.ssh/grader_key -p 2200 grader@3.218.247.29`.
 
 ## Step 7: Installing Apache and PostgreSQL
 1. While logged in as `grader`, configure the time zone: `sudo dpkg-reconfigure tzdata`.
 2. Install Apache: `sudo apt-get install apache2`.
-3. Enter public IP of the Amazon Lightsail instance into browser (`100.26.251.188`). If Apache is working, you should be able to see the Apache2 Ubuntu Default Page.
+3. Enter public IP of the Amazon Lightsail instance into browser (`3.218.247.29`). If Apache is working, you should be able to see the Apache2 Ubuntu Default Page.
 4. My project is built with Python3 so I needed to install the Python3 mod_wsgi package: `sudo apt-get install libapache2-mod-wsgi-py3`.
    - Enable mod_wsgi using: `sudo a2enmod wsgi`.
 5. Install PostgreSQL: `sudo apt-get install postgresql`.
@@ -198,11 +198,13 @@ postgres=# ALTER ROLE catalog CREATEDB;
 root    ALL=(ALL:ALL) ALL
 grader  ALL=(ALL:ALL) ALL
 ```
-    - Below this line, add a new line to give sudo privileges to `catalog` user.
+
+   - Below this line, add a new line to give sudo privileges to `catalog` user.
+
 ```
 catalog  ALL=(ALL:ALL) ALL
 ```
-    - Save and exit using CTRL+X and confirm with Y.
+   - Save and exit using CTRL+X and confirm with Y.
 14. Verify that `catalog` has sudo permissions. Run `su - catalog`, enter the password, run `sudo -l` and enter the password again. The output should look like this:
 ```
 Matching Defaults entries for catalog on ip-172-26-13-170.us-east-2.compute.internal:
@@ -336,7 +338,7 @@ sys.path.insert(0, "/var/www/catalog/catalog/venv3/lib/python3.5/site-packages")
 2. Reload Apache: `sudo service apache2 reload`.
 3. Change the ownership of the project directories: `sudo chown -R www-data:www-data catalog/`.
 4. Restart Apache again: `sudo service apache2 restart`.
-5. Open your browser to http://100.26.251.188 or http://ec2-100-26-251-188.compute-1.amazonaws.com/.
+5. Open your browser to http://3.218.247.29 or http://ec2-3-218-247-29.compute-1.amazonaws.com/.
 
 # References
 This project could not have been completed without the help of a fellow Udacitian. Their project github which this server was heavily inspired by can be found here: https://github.com/boisalai/udacity-linux-server-configuration
